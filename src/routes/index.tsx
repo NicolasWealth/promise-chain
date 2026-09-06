@@ -26,7 +26,7 @@ function Index() {
           <div className="animate-[cc-rise_.6s_ease-out_both]">
             <SectionEyebrow>Accountability infrastructure for Web3</SectionEyebrow>
             <h1 className="mt-5 max-w-2xl text-5xl font-bold leading-[.98] tracking-[-0.045em] sm:text-7xl">Make promises<br /><span className="text-lime-soft">worth keeping.</span></h1>
-            <p className="mt-7 max-w-xl text-base leading-7 text-muted sm:text-lg">Commit funds. Set measurable outcomes. Build a public track record of delivering.</p>
+            <p className="mt-7 max-w-xl text-base leading-7 text-muted-foreground sm:text-lg">Commit funds. Set measurable outcomes. Build a public track record of delivering.</p>
             <div className="mt-8 flex flex-wrap gap-3">
               <Button asChild variant="accent" size="lg"><Link to="/create">Create a commitment <ArrowUpRight className="size-4" /></Link></Button>
               <Button asChild variant="outline" size="lg"><Link to="/dashboard">Explore commitments</Link></Button>
@@ -44,7 +44,7 @@ function Index() {
           <div className="mx-auto grid max-w-6xl gap-10 px-5 py-16 sm:px-8 lg:grid-cols-[.8fr_1.2fr] lg:py-20">
             <div><SectionEyebrow>Why CommitChain</SectionEyebrow><h2 className="mt-4 max-w-md text-3xl font-bold tracking-tight sm:text-4xl">Make delivery visible.</h2></div>
             <div className="grid gap-8 sm:grid-cols-3">
-              {[['01', 'Commit with skin in the game', 'Lock value against a promise, not a vague roadmap.'], ['02', 'Verify the work', 'Use clear, measurable evidence before the clock runs out.'], ['03', 'Build reputation', 'Every outcome becomes part of a public track record.']].map(([number, title, copy]) => <div key={number} className="border-t-2 border-ink pt-4"><span className="font-mono text-[11px] text-lime-soft">{number}</span><h3 className="mt-5 font-bold">{title}</h3><p className="mt-2 text-sm leading-6 text-muted">{copy}</p></div>)}
+              {[['01', 'Commit with skin in the game', 'Lock value against a promise, not a vague roadmap.'], ['02', 'Verify the work', 'Use clear, measurable evidence before the clock runs out.'], ['03', 'Build reputation', 'Every outcome becomes part of a public track record.']].map(([number, title, copy]) => <div key={number} className="border-t-2 border-ink pt-4"><span className="font-mono text-[11px] text-lime-soft">{number}</span><h3 className="mt-5 font-bold">{title}</h3><p className="mt-2 text-sm leading-6 text-muted-foreground">{copy}</p></div>)}
             </div>
           </div>
         </section>

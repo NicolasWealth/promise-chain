@@ -1,5 +1,5 @@
 import { Link, createFileRoute } from "@tanstack/react-router";
-import { ArrowUpRight, Check, ShieldCheck } from "lucide-react";
+import { ArrowUpRight, ShieldCheck } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { CommitmentCard, Footer, Navbar, PageFrame, SectionEyebrow, StepFlow } from "@/components/commitchain";

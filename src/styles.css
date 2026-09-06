@@ -66,7 +66,7 @@
   --ink: oklch(0.18 0 0);
   --lime: oklch(0.86 0.22 112);
   --lime-soft: oklch(0.42 0.1 112);
-  --faint-ink: oklch(0.18 0 0 / 32%);
+  --faint-ink: oklch(0.18 0 0 / 55%);
   --rule: oklch(0.18 0 0 / 12%);
   --panel: oklch(1 0 0);
   --danger: oklch(0.48 0.18 25);

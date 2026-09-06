@@ -75,5 +75,9 @@ export const commitments: Commitment[] = [
   },
 ];
 
-export const profileHistory = [commitments[2], { ...commitments[0], status: "completed" as const, progress: 100, deadline: "June 18, 2026", deadlineShort: "Jun 18, 2026" }, commitments[3]];
+export const profileHistory: Commitment[] = [
+  ...commitments.filter((commitment) => commitment.id === "payments-ledger"),
+  { ...currentCommitment, status: "completed" as const, progress: 100, deadline: "June 18, 2026", deadlineShort: "Jun 18, 2026" },
+  ...commitments.filter((commitment) => commitment.id === "security-audit"),
+];
 export const getCommitment = (id: string) => commitments.find((commitment) => commitment.id === id) ?? currentCommitment;

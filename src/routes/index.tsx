@@ -2,7 +2,7 @@ import { Link, createFileRoute } from "@tanstack/react-router";
 import { ArrowUpRight, ShieldCheck } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { CommitmentCard, Footer, Navbar, PageFrame, SectionEyebrow, StepFlow } from "@/components/commitchain";
+import { CommitmentCard, Footer, Navbar, PageFrame, SectionEyebrow, StatusBadge, StepFlow } from "@/components/commitchain";
 import { currentCommitment, profileHistory } from "@/services/mockData";
 
 export const Route = createFileRoute("/")({

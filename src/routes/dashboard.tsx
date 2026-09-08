@@ -16,9 +16,9 @@ import type { CommitmentStatus } from "@/services/mockData";
 export const Route = createFileRoute("/dashboard")({
   head: () => ({
     meta: [
-      { title: "Dashboard — CommitChain" },
+      { title: "Dashboard - PromiseChain" },
       { name: "description", content: "Review active, completed, and failed commitments." },
-      { property: "og:title", content: "Dashboard — CommitChain" },
+      { property: "og:title", content: "Dashboard - PromiseChain" },
       { property: "og:description", content: "Review active, completed, and failed commitments." },
     ],
   }),
@@ -29,6 +29,7 @@ function Dashboard() {
   const [filter, setFilter] = useState<"all" | CommitmentStatus>("all");
   const filtered =
     filter === "all" ? commitments : commitments.filter((item) => item.status === filter);
+
   return (
     <Shell>
       <main className="mx-auto max-w-6xl px-5 py-10 sm:px-8 sm:py-14">

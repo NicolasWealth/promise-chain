@@ -13,12 +13,12 @@ import { commitments, profileHistory } from "@/services/mockData";
 export const Route = createFileRoute("/profile")({
   head: () => ({
     meta: [
-      { title: "Project Alpha reputation — CommitChain" },
+      { title: "Project Alpha reputation - PromiseChain" },
       {
         name: "description",
         content: "Inspect Project Alpha's public commitment history and delivery record.",
       },
-      { property: "og:title", content: "Project Alpha reputation — CommitChain" },
+      { property: "og:title", content: "Project Alpha reputation - PromiseChain" },
       {
         property: "og:description",
         content: "Inspect Project Alpha's public commitment history and delivery record.",
@@ -48,7 +48,7 @@ function Profile() {
               <div>
                 <h1 className="text-4xl font-bold tracking-tight">Project Alpha</h1>
                 <p className="mt-1 font-mono text-xs text-muted-foreground">
-                  0x3f8c…9a2b · established Aug 2026
+                  0x3f8c...9a2b - established Aug 2026
                 </p>
               </div>
             </div>

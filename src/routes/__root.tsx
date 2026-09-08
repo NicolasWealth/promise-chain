@@ -8,8 +8,10 @@ import {
   Scripts,
 } from "@tanstack/react-router";
 import { useEffect, type ReactNode } from "react";
+import { WagmiProvider } from "wagmi";
 
 import appCss from "../styles.css?url";
+import { wagmiConfig } from "@/lib/web3/config";
 
 function NotFoundComponent() {
   return (
@@ -73,20 +75,20 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "CommitChain — Make promises worth keeping" },
+      { title: "PromiseChain - Make promises worth keeping" },
       {
         name: "description",
         content: "Escrow-backed commitments and public accountability for Web3 projects.",
       },
-      { name: "author", content: "CommitChain" },
-      { property: "og:title", content: "CommitChain — Make promises worth keeping" },
+      { name: "author", content: "PromiseChain" },
+      { property: "og:title", content: "PromiseChain - Make promises worth keeping" },
       {
         property: "og:description",
         content: "Escrow-backed commitments and public accountability for Web3 projects.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:site", content: "@CommitChain" },
+      { name: "twitter:site", content: "@PromiseChain" },
     ],
     links: [
       {
@@ -127,8 +129,10 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-      <Outlet />
+      <WagmiProvider config={wagmiConfig}>
+        {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
+        <Outlet />
+      </WagmiProvider>
     </QueryClientProvider>
   );
 }

@@ -1,4 +1,4 @@
-# CommitChain MVP
+# PromiseChain MVP
 
 - [x] Establish Athletic Ledger design tokens and shared app shell
 - [x] Add consistent mock commitments plus blockchain/evidence service interfaces

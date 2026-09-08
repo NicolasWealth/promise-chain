@@ -16,12 +16,12 @@ import { currentCommitment, profileHistory } from "@/services/mockData";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "CommitChain — Make promises worth keeping" },
+      { title: "PromiseChain - Make promises worth keeping" },
       {
         name: "description",
         content: "Fund measurable commitments and build a public record of delivering.",
       },
-      { property: "og:title", content: "CommitChain — Make promises worth keeping" },
+      { property: "og:title", content: "PromiseChain - Make promises worth keeping" },
       {
         property: "og:description",
         content: "Fund measurable commitments and build a public record of delivering.",
@@ -63,7 +63,7 @@ function Index() {
             <div className="absolute -left-3 -top-3 hidden h-20 w-20 border-l border-t border-lime-soft/50 sm:block" />
             <CommitmentCard commitment={currentCommitment} />
             <div className="mt-3 flex items-center gap-2 px-1 font-mono text-[10px] uppercase tracking-[.14em] text-faint">
-              <ShieldCheck className="size-3.5 text-lime-soft" /> Escrow-backed · publicly
+              <ShieldCheck className="size-3.5 text-lime-soft" /> Escrow-backed - publicly
               verifiable
             </div>
           </div>
@@ -72,7 +72,7 @@ function Index() {
         <section className="border-y border-rule bg-panel">
           <div className="mx-auto grid max-w-6xl gap-10 px-5 py-16 sm:px-8 lg:grid-cols-[.8fr_1.2fr] lg:py-20">
             <div>
-              <SectionEyebrow>Why CommitChain</SectionEyebrow>
+              <SectionEyebrow>Why PromiseChain</SectionEyebrow>
               <h2 className="mt-4 max-w-md text-3xl font-bold tracking-tight sm:text-4xl">
                 Make delivery visible.
               </h2>

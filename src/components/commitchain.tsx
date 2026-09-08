@@ -12,28 +12,76 @@ import {
   X,
 } from "lucide-react";
 import { useState, type ReactNode } from "react";
+import { useAccount, useChainId, useConnect, useDisconnect, useSwitchChain } from "wagmi";
+import { baseSepolia } from "wagmi/chains";
 
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import type { Commitment, CommitmentStatus } from "@/services/mockData";
 
+function shortAddress(address?: string) {
+  if (!address) {
+    return "Connect wallet";
+  }
+  return `${address.slice(0, 6)}...${address.slice(-4)}`;
+}
+
 export function Logo() {
   return (
-    <Link to="/" className="flex items-center gap-2.5" aria-label="CommitChain home">
+    <Link to="/" className="flex items-center gap-2.5" aria-label="PromiseChain home">
       <span className="grid size-7 place-items-center bg-ink font-display text-[11px] font-bold text-lime">
         CC
       </span>
-      <span className="text-[15px] font-bold tracking-tight">CommitChain</span>
+      <span className="text-[15px] font-bold tracking-tight">PromiseChain</span>
     </Link>
   );
 }
 
 export function WalletButton() {
-  const [connected, setConnected] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const { address, isConnected } = useAccount();
+  const { connectors, connectAsync, isPending: isConnecting } = useConnect();
+  const { disconnect } = useDisconnect();
+  const chainId = useChainId();
+  const { switchChainAsync, isPending: isSwitching } = useSwitchChain();
+  const wrongNetwork = isConnected && chainId !== baseSepolia.id;
+
+  async function handleWalletAction() {
+    if (busy) {
+      return;
+    }
+
+    setBusy(true);
+    try {
+      if (!isConnected) {
+        const connector = connectors[0];
+        if (!connector) {
+          throw new Error("No wallet connector is available");
+        }
+        await connectAsync({ connector });
+        return;
+      }
+
+      if (wrongNetwork) {
+        await switchChainAsync({ chainId: baseSepolia.id });
+        return;
+      }
+
+      disconnect();
+    } finally {
+      setBusy(false);
+    }
+  }
+
   return (
-    <Button variant="accent" size="sm" onClick={() => setConnected((value) => !value)}>
+    <Button
+      variant="accent"
+      size="sm"
+      onClick={handleWalletAction}
+      disabled={busy || isConnecting || isSwitching}
+    >
       <WalletCards className="size-3.5" />
-      {connected ? "0x3f8c…9a2b" : "Connect wallet"}
+      {wrongNetwork ? "Switch to Base Sepolia" : shortAddress(isConnected ? address : undefined)}
     </Button>
   );
 }
@@ -65,7 +113,7 @@ export function Navbar() {
         </nav>
         <div className="ml-auto hidden items-center gap-3 sm:flex">
           <span className="hidden font-mono text-[10px] font-medium text-faint lg:block">
-            network: Base · mock
+            network: Base Sepolia
           </span>
           <WalletButton />
         </div>
@@ -271,8 +319,8 @@ export function Footer() {
   return (
     <footer className="border-t border-rule">
       <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-5 py-6 font-mono text-[11px] sm:px-8">
-        <span className="text-muted-foreground">CommitChain · mock data · no live wallet</span>
-        <span className="text-faint">Base testnet ready · verification: GitHub</span>
+        <span className="text-muted-foreground">PromiseChain · ETH escrow · on-chain resolver</span>
+        <span className="text-faint">Base Sepolia ready · verification metadata: manual</span>
       </div>
     </footer>
   );

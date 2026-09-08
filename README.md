@@ -1,8 +1,8 @@
 # Commit & Deliver
 
-Build a polished modern consumer SaaS web app called CommitChain.
+Build a polished modern consumer SaaS web app called PromiseChain.
 
-CommitChain is an accountability platform for Web3 projects. Users create funded commitments with measurable success conditions. Funds are represented as escrowed assets. Commitments have deadlines, evidence, and public outcomes. The eventual blockchain implementation will run on Base, but for this MVP the blockchain and GitHub verification should use realistic mock data.
+PromiseChain is an accountability platform for Web3 projects. Users create funded commitments with measurable success conditions. Funds are represented as escrowed assets. Commitments have deadlines, evidence, and public outcomes. The eventual blockchain implementation will run on Base, but for this MVP the blockchain and GitHub verification should use realistic mock data.
 
 Product positioning
 
@@ -86,7 +86,7 @@ GitHub PR #142 merged
 
 progress indicator
 
-Include a section explaining why CommitChain exists.
+Include a section explaining why PromiseChain exists.
 
 Include a public reputation example.
 
@@ -98,7 +98,7 @@ The landing page should look like a real startup product, not a hackathon templa
 
 Header:
 
-CommitChain logo/name
+PromiseChain logo/name
 
 Dashboard
 

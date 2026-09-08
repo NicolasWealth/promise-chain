@@ -16,6 +16,13 @@ dist-ssr
 .nitro
 *.local
 
+# Hardhat
+artifacts/
+cache/
+
+# Temporary files
+.tmp/
+
 # Wrangler / Cloudflare
 .wrangler/
 .dev.vars

@@ -319,8 +319,8 @@ export function Footer() {
   return (
     <footer className="border-t border-rule">
       <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-5 py-6 font-mono text-[11px] sm:px-8">
-        <span className="text-muted-foreground">PromiseChain · ETH escrow · on-chain resolver</span>
-        <span className="text-faint">Base Sepolia ready · verification metadata: manual</span>
+        <span className="text-muted-foreground">PromiseChain / ETH escrow / on-chain resolver</span>
+        <span className="text-faint">Base Sepolia ready / GitHub evidence metadata</span>
       </div>
     </footer>
   );
@@ -378,7 +378,7 @@ export function EvidencePanel({
           </span>
           <div>
             <p className="font-mono text-[10px] uppercase tracking-[0.12em] text-faint">Evidence</p>
-            <h2 className="font-bold">GitHub pull request</h2>
+            <h2 className="font-bold">GitHub evidence</h2>
           </div>
         </div>
         {verified ? (
@@ -401,9 +401,9 @@ export function EvidencePanel({
           </div>
           <div className="text-left sm:text-right">
             <p className="font-mono text-[10px] uppercase tracking-[0.12em] text-faint">
-              Pull request
+              Reference
             </p>
-            <p className="mt-1 text-sm font-bold">#{commitment.pullRequest}</p>
+            <p className="mt-1 break-words font-mono text-xs font-bold">{commitment.condition}</p>
           </div>
         </div>
         <h3 className="mt-5 text-base font-bold">{commitment.pullRequestTitle}</h3>
@@ -420,7 +420,7 @@ export function EvidencePanel({
             <p className="text-xs text-muted-foreground">Merge status</p>
             <p className={cn("mt-1 font-semibold", verified ? "text-lime-soft" : "text-danger")}>
               {verified
-                ? `Merged · ${commitment.mergeDate ?? "verified"}`
+                ? `Verified / ${commitment.mergeDate ?? "GitHub"}`
                 : commitment.mergeStatus === "open"
                   ? "Open"
                   : "Not submitted"}
@@ -515,7 +515,7 @@ export function DetailHeader({ commitment }: { commitment: Commitment }) {
               <span className="text-base text-muted-foreground">{commitment.token}</span>
             </p>
             <p className="mt-1 font-mono text-xs text-muted-foreground">
-              deadline · {commitment.deadline}
+              deadline / {commitment.deadline}
             </p>
           </div>
         </div>

@@ -36,6 +36,8 @@ export type BlockchainCommitment = Omit<
   | "transactionHash"
 > & {
   mode: CommitmentMode;
+  evidenceType: string;
+  evidenceReference: string;
   contractAddress?: Address | undefined;
   resolver?: Address | undefined;
   onChainId?: string | undefined;
@@ -312,6 +314,8 @@ function buildCommitmentView({
     transactionHash,
     releaseHash,
     mode,
+    evidenceType,
+    evidenceReference,
     resolver,
     contractAddress,
     onChainId,

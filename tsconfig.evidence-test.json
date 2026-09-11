@@ -1,0 +1,14 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "allowImportingTsExtensions": false,
+    "module": "CommonJS",
+    "moduleResolution": "Node",
+    "noEmit": false,
+    "noEmitOnError": true,
+    "outDir": ".tmp/evidence-test",
+    "rootDir": ".",
+    "types": ["node"]
+  },
+  "include": ["src/services/evidence.ts", "src/services/github.ts", "test/evidence.test.ts"]
+}

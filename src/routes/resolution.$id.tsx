@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Link, createFileRoute } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { ArrowLeft, Check, CircleX, ExternalLink, LoaderCircle, ShieldCheck } from "lucide-react";
@@ -13,16 +13,40 @@ import {
   TransactionRow,
 } from "@/components/commitchain";
 import { blockchainService, toCommitmentView } from "@/services/blockchain";
+import {
+  EvidenceValidationError,
+  evidenceService,
+  type VerificationResult,
+} from "@/services/evidence";
 import { getCommitment as getMockCommitment } from "@/services/mockData";
 
 const evidenceLabels: Record<string, string> = {
-  github_pr: "GitHub Pull Request",
-  github_issue: "GitHub Issue",
-  manual_note: "Manual Note",
+  PR_MERGED: "PR merged",
+  ISSUE_CLOSED: "Issue closed",
+  COMMIT_ON_BRANCH: "Commit on branch",
 };
 
+const statusLabels: Record<VerificationResult["status"], string> = {
+  verified: "Verified on GitHub",
+  failed: "Not verified",
+  not_found: "Evidence not found",
+  error: "GitHub unavailable",
+  unsupported: "Unsupported evidence",
+  deadline_uncertain: "Deadline uncertain",
+  demo: "Demo evidence",
+};
+
+function deadlineEndOfDay(deadline: string) {
+  if (/^\d{4}-\d{2}-\d{2}$/.test(deadline)) {
+    return `${deadline}T23:59:59Z`;
+  }
+
+  const timestamp = Date.parse(`${deadline} 23:59:59 UTC`);
+  return Number.isFinite(timestamp) ? new Date(timestamp).toISOString() : deadline;
+}
+
 function isDeadlinePassed(deadline: string) {
-  const parsed = Date.parse(`${deadline}T23:59:59Z`);
+  const parsed = Date.parse(deadlineEndOfDay(deadline));
   return Number.isFinite(parsed) ? parsed <= Date.now() : false;
 }
 
@@ -56,21 +80,37 @@ function Resolution() {
     queryKey: ["commitment", id],
     queryFn: () => blockchainService.getCommitment(id),
   });
+  const verificationQuery = useQuery({
+    queryKey: [
+      "evidence-verification",
+      id,
+      commitment?.evidenceType,
+      commitment?.evidenceReference,
+      commitment?.deadline,
+      commitment?.mode,
+    ],
+    enabled: Boolean(commitment?.evidenceReference),
+    retry: false,
+    queryFn: async () => {
+      if (!commitment) {
+        throw new Error("Commitment is not loaded.");
+      }
 
-  const [evidenceType, setEvidenceType] = useState("github_pr");
-  const [evidenceReference, setEvidenceReference] = useState("");
+      if (commitment.mode === "demo" && !commitment.evidenceReference.startsWith("github:")) {
+        return evidenceService.createDemoVerificationResult(toCommitmentView(commitment));
+      }
+
+      return evidenceService.verifyEvidenceReference(
+        commitment.evidenceReference,
+        deadlineEndOfDay(commitment.deadline),
+      );
+    },
+  });
+
   const [pendingAction, setPendingAction] = useState<"evidence" | "success" | "failure" | null>(
     null,
   );
   const [errorMessage, setErrorMessage] = useState("");
-
-  useEffect(() => {
-    if (!commitment) {
-      return;
-    }
-    setEvidenceType((current) => current || commitment.repository || "github_pr");
-    setEvidenceReference((current) => current || commitment.condition || commitment.description);
-  }, [commitment]);
 
   if (isLoading || !commitment) {
     if (error) {
@@ -105,7 +145,19 @@ function Resolution() {
 
   const currentCommitment = commitment;
   const displayCommitment = toCommitmentView(currentCommitment);
-  const evidenceLabel = evidenceLabels[evidenceType] ?? evidenceType;
+  const verificationResult = verificationQuery.data;
+  const evidenceLabel =
+    evidenceLabels[currentCommitment.evidenceType] ??
+    currentCommitment.evidenceType ??
+    "GitHub evidence";
+  const verificationStatus =
+    verificationResult?.status ??
+    (verificationQuery.error instanceof EvidenceValidationError ? "unsupported" : undefined);
+  const verificationLabel = verificationStatus
+    ? statusLabels[verificationStatus]
+    : verificationQuery.isFetching
+      ? "Checking GitHub"
+      : "Awaiting verification";
   const authorized =
     currentCommitment.mode === "demo"
       ? isConnected
@@ -118,10 +170,15 @@ function Resolution() {
   const canFail =
     currentCommitment.status === "active" && (deadlinePassed || currentCommitment.mode === "demo");
   const canResolve = currentCommitment.status === "active" && authorized;
+  const canMarkSuccess = canResolve && Boolean(verificationResult?.verified);
 
   async function runAction(action: "evidence" | "success" | "failure") {
     if (!authorized) {
       setErrorMessage("Connect the authorized resolver wallet to continue.");
+      return;
+    }
+    if (action === "success" && !verificationResult?.verified) {
+      setErrorMessage("GitHub evidence must verify before success can be resolved.");
       return;
     }
 
@@ -131,8 +188,8 @@ function Resolution() {
       if (action === "evidence") {
         await blockchainService.submitEvidence(
           currentCommitment.id,
-          evidenceType,
-          evidenceReference,
+          currentCommitment.evidenceType,
+          currentCommitment.evidenceReference,
         );
       } else {
         await blockchainService.resolveCommitment(currentCommitment.id, action === "success");
@@ -186,7 +243,7 @@ function Resolution() {
           <div className="space-y-6">
             <EvidencePanel
               commitment={displayCommitment}
-              verified={currentCommitment.status === "completed"}
+              verified={verificationResult?.verified ?? currentCommitment.status === "completed"}
             />
             <section className="border border-rule bg-panel p-5 sm:p-6">
               <SectionEyebrow>Resolution record</SectionEyebrow>
@@ -212,7 +269,7 @@ function Resolution() {
                       "No qualifying submission"
                     ) : (
                       <>
-                        <ShieldCheck className="size-4 text-lime-soft" /> Evidence verified
+                        <ShieldCheck className="size-4 text-lime-soft" /> {verificationLabel}
                       </>
                     )}
                   </p>
@@ -288,36 +345,30 @@ function Resolution() {
                 </div>
               </div>
               <div className="mt-5 grid gap-4 border-t border-rule pt-5">
-                <label className="block">
-                  <span className="mb-1.5 block text-xs font-semibold text-muted-foreground">
+                <div>
+                  <p className="mb-1.5 text-xs font-semibold text-muted-foreground">
                     Evidence type
-                  </span>
-                  <select
-                    value={evidenceType}
-                    onChange={(event) => setEvidenceType(event.target.value)}
-                    className="w-full border border-input bg-background px-3 py-3 text-sm outline-none focus:border-lime-soft"
-                  >
-                    <option value="github_pr">GitHub Pull Request</option>
-                    <option value="github_issue">GitHub Issue</option>
-                    <option value="manual_note">Manual Note</option>
-                  </select>
-                </label>
-                <label className="block">
-                  <span className="mb-1.5 block text-xs font-semibold text-muted-foreground">
+                  </p>
+                  <p className="border border-input bg-background px-3 py-3 text-sm font-semibold">
+                    {evidenceLabel}
+                  </p>
+                </div>
+                <div>
+                  <p className="mb-1.5 text-xs font-semibold text-muted-foreground">
                     Evidence reference
-                  </span>
-                  <input
-                    value={evidenceReference}
-                    onChange={(event) => setEvidenceReference(event.target.value)}
-                    className="w-full border border-input bg-background px-3 py-3 font-mono text-sm outline-none focus:border-lime-soft"
-                  />
-                </label>
+                  </p>
+                  <p className="break-words border border-input bg-background px-3 py-3 font-mono text-xs leading-5">
+                    {currentCommitment.evidenceReference}
+                  </p>
+                </div>
               </div>
               <div className="mt-5 grid gap-3">
                 <Button
                   variant="outline"
                   onClick={() => runAction("evidence")}
-                  disabled={!authorized || pendingAction !== null}
+                  disabled={
+                    !authorized || pendingAction !== null || !currentCommitment.evidenceReference
+                  }
                 >
                   {pendingAction === "evidence" ? (
                     <>
@@ -331,7 +382,7 @@ function Resolution() {
                   <Button
                     variant="accent"
                     onClick={() => runAction("success")}
-                    disabled={!canResolve || pendingAction !== null}
+                    disabled={!canMarkSuccess || pendingAction !== null}
                   >
                     {pendingAction === "success" ? (
                       <>
@@ -362,6 +413,13 @@ function Resolution() {
                   Connect the resolver wallet to enable on-chain evidence submission and settlement.
                 </p>
               )}
+              {authorized &&
+                currentCommitment.status === "active" &&
+                !verificationResult?.verified && (
+                  <p className="mt-4 text-xs leading-5 text-muted-foreground">
+                    Success resolution stays disabled until GitHub evidence verifies.
+                  </p>
+                )}
               {currentCommitment.status !== "active" && (
                 <p className="mt-4 text-xs leading-5 text-muted-foreground">
                   This commitment is already resolved, so the action panel is read only.
@@ -377,18 +435,62 @@ function Resolution() {
             </section>
 
             <section className="border border-rule bg-panel p-5 sm:p-6">
-              <SectionEyebrow>Evidence metadata</SectionEyebrow>
+              <SectionEyebrow>GitHub verification</SectionEyebrow>
               <div className="mt-4 space-y-3 text-sm">
                 <div className="flex items-start justify-between gap-4">
                   <span className="text-muted-foreground">Type</span>
                   <span className="font-semibold">{evidenceLabel}</span>
                 </div>
+                <div className="flex items-start justify-between gap-4">
+                  <span className="text-muted-foreground">Status</span>
+                  <span
+                    className={
+                      verificationResult?.verified
+                        ? "font-semibold text-lime-soft"
+                        : "font-semibold text-muted-foreground"
+                    }
+                  >
+                    {verificationQuery.isFetching && (
+                      <LoaderCircle className="mr-1 inline size-3 animate-spin" />
+                    )}
+                    {verificationLabel}
+                  </span>
+                </div>
                 <div>
                   <p className="text-muted-foreground">Reference</p>
                   <p className="mt-1 font-mono text-xs leading-5 break-words">
-                    {evidenceReference}
+                    {currentCommitment.evidenceReference}
                   </p>
                 </div>
+                {(verificationResult?.reason || verificationQuery.error) && (
+                  <div>
+                    <p className="text-muted-foreground">Result</p>
+                    <p className="mt-1 text-xs leading-5">
+                      {verificationResult?.reason ??
+                        (verificationQuery.error instanceof Error
+                          ? verificationQuery.error.message
+                          : "Evidence verification failed.")}
+                    </p>
+                  </div>
+                )}
+                {verificationResult?.githubTimestamp && (
+                  <div className="flex items-start justify-between gap-4">
+                    <span className="text-muted-foreground">GitHub timestamp</span>
+                    <span className="text-right font-mono text-xs">
+                      {verificationResult.githubTimestamp}
+                    </span>
+                  </div>
+                )}
+                {verificationResult?.githubUrl && (
+                  <a
+                    href={verificationResult.githubUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex items-center gap-1 text-xs font-bold text-lime-soft"
+                  >
+                    Open evidence <ExternalLink className="size-3.5" />
+                  </a>
+                )}
               </div>
             </section>
           </aside>

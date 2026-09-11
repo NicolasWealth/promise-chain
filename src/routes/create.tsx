@@ -14,7 +14,7 @@ import {
   buildEvidenceReference,
   type EvidenceRequirement,
   type EvidenceType,
-} from "@/services/evidence";
+} from "@/services/evidenceShared";
 
 const evidenceLabels: Record<EvidenceType, string> = {
   PR_MERGED: "PR merged",

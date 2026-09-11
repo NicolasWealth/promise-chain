@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, createFileRoute } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { ArrowLeft, Check, CircleX, ExternalLink, LoaderCircle, ShieldCheck } from "lucide-react";
 import { useAccount } from "wagmi";
 
@@ -15,9 +16,10 @@ import {
 import { blockchainService, toCommitmentView } from "@/services/blockchain";
 import {
   EvidenceValidationError,
-  evidenceService,
+  createDemoVerificationResult,
   type VerificationResult,
-} from "@/services/evidence";
+} from "@/services/evidenceShared";
+import { verifyEvidenceOnServer } from "@/services/evidenceVerification";
 import { getCommitment as getMockCommitment } from "@/services/mockData";
 
 const evidenceLabels: Record<string, string> = {
@@ -72,6 +74,7 @@ function Resolution() {
   const { id } = Route.useParams();
   const queryClient = useQueryClient();
   const { address, isConnected } = useAccount();
+  const verifyEvidenceServer = useServerFn(verifyEvidenceOnServer);
   const {
     data: commitment,
     error,
@@ -97,13 +100,15 @@ function Resolution() {
       }
 
       if (commitment.mode === "demo" && !commitment.evidenceReference.startsWith("github:")) {
-        return evidenceService.createDemoVerificationResult(toCommitmentView(commitment));
+        return createDemoVerificationResult(toCommitmentView(commitment));
       }
 
-      return evidenceService.verifyEvidenceReference(
-        commitment.evidenceReference,
-        deadlineEndOfDay(commitment.deadline),
-      );
+      return verifyEvidenceServer({
+        data: {
+          reference: commitment.evidenceReference,
+          deadline: deadlineEndOfDay(commitment.deadline),
+        },
+      });
     },
   });
 

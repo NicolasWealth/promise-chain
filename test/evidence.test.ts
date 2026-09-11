@@ -1,4 +1,5 @@
 import * as assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import { test } from "node:test";
 
 import {
@@ -52,10 +53,13 @@ function pullRequest(mergedAt: string | null): GitHubPullRequest {
   };
 }
 
-function issue(closedAt: string | null): GitHubIssue {
+function issue(
+  closedAt: string | null,
+  state: GitHubIssue["state"] = closedAt ? "closed" : "open",
+): GitHubIssue {
   return {
     number: 123,
-    state: closedAt ? "closed" : "open",
+    state,
     closed_at: closedAt,
     html_url: "https://github.com/owner/repo/issues/123",
   };
@@ -142,14 +146,23 @@ test("verifies merged pull requests and enforces deadlines", async () => {
   assert.equal(verified.verified, true);
   assert.equal(verified.status, "verified");
 
-  const open = await verifyEvidence(baseRequirement, {
+  const missingTimestamp = await verifyEvidence(baseRequirement, {
     checkedAt,
     githubClient: githubClient({
       getPullRequest: async () => pullRequest(null),
     }),
   });
-  assert.equal(open.verified, false);
-  assert.equal(open.status, "failed");
+  assert.equal(missingTimestamp.verified, false);
+  assert.equal(missingTimestamp.status, "deadline_uncertain");
+
+  const malformedTimestamp = await verifyEvidence(baseRequirement, {
+    checkedAt,
+    githubClient: githubClient({
+      getPullRequest: async () => pullRequest("not-a-date"),
+    }),
+  });
+  assert.equal(malformedTimestamp.verified, false);
+  assert.equal(malformedTimestamp.status, "deadline_uncertain");
 
   const late = await verifyEvidence(baseRequirement, {
     checkedAt,
@@ -186,6 +199,24 @@ test("verifies closed issues and rejects pull request issue records", async () =
   });
   assert.equal(open.verified, false);
   assert.equal(open.status, "failed");
+
+  const missingTimestamp = await verifyEvidence(baseRequirement, {
+    checkedAt,
+    githubClient: githubClient({
+      getIssue: async () => issue(null, "closed"),
+    }),
+  });
+  assert.equal(missingTimestamp.verified, false);
+  assert.equal(missingTimestamp.status, "deadline_uncertain");
+
+  const malformedTimestamp = await verifyEvidence(baseRequirement, {
+    checkedAt,
+    githubClient: githubClient({
+      getIssue: async () => issue("not-a-date", "closed"),
+    }),
+  });
+  assert.equal(malformedTimestamp.verified, false);
+  assert.equal(malformedTimestamp.status, "deadline_uncertain");
 
   const pullRequestRecord = await verifyEvidence(baseRequirement, {
     checkedAt,
@@ -294,4 +325,14 @@ test("distinguishes invalid evidence, missing GitHub data, and API failures", as
   });
   assert.equal(network.status, "error");
   assert.equal(network.errorCode, "network");
+});
+
+test("keeps GitHub token usage behind the server verification boundary", () => {
+  const serverBoundarySource = readFileSync("src/services/evidenceVerification.ts", "utf8");
+  const resolutionRouteSource = readFileSync("src/routes/resolution.$id.tsx", "utf8");
+
+  assert.match(serverBoundarySource, /GITHUB_TOKEN/);
+  assert.doesNotMatch(serverBoundarySource, /VITE_/);
+  assert.doesNotMatch(resolutionRouteSource, /GITHUB_TOKEN|createGitHubRestClient/);
+  assert.match(resolutionRouteSource, /verifyEvidenceOnServer/);
 });
